@@ -153,7 +153,10 @@ class CalendarEvents:
                 number_of_attendees = 0
                 if participants:
                     number_of_attendees = len(participants)
-
+                    for participant in participants:
+                        if participant.get('organizer'):
+                            organizer_email = participant['email']
+                            break
                 if existing_event and event.get("status") == "cancelled":
                     existing_event.state = "archived"
                     existing_event.save()
@@ -179,7 +182,8 @@ class CalendarEvents:
                             "dateTime") or event["end"].get("date"),
                         number_of_participants=number_of_attendees,
                         checked_in=False,
-                        cancelled=False
+                        cancelled=False,
+                        organizer=organizer_email
                     )
                     new_event.save()
             if not next_page:

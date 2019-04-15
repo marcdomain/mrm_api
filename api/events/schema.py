@@ -5,6 +5,7 @@ from graphql import GraphQLError
 from api.events.models import Events as EventsModel
 from api.room.models import Room as RoomModel
 from helpers.calendar.events import RoomSchedules, CalendarEvents
+from helpers.email.email import notification
 
 
 class Events(SQLAlchemyObjectType):
@@ -72,7 +73,12 @@ class CancelEvent(graphene.Mutation):
                 checked_in=False,
                 cancelled=True)
             event.save()
-
+        event_title = event.event_title
+        email = event.organizer
+        if not notification.event_cancellation_notification(email,
+                                                            room_id, event_title
+                                                            ):
+            raise GraphQLError("Event cancelled but email not sent")
         return CancelEvent(event=event)
 
 

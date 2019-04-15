@@ -22,3 +22,4 @@ class Events(Base, Utility):
     number_of_participants = Column(Integer, nullable=False)
     check_in_time = Column(String, nullable=True)
     meeting_end_time = Column(String, nullable=True)
+    organizer = Column(String, nullable=True)

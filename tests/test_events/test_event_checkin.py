@@ -58,7 +58,7 @@ class TestEventCheckin(BaseTestCase):
         '''
         Test that event status is updated to cancelled.
         '''
-        CommonTestCases.user_token_assert_equal(
+        CommonTestCases.user_token_assert_in(
             self,
             cancel_event_mutation,
             cancel_event_respone
@@ -68,7 +68,7 @@ class TestEventCheckin(BaseTestCase):
         '''
         test that you cannot cancel an event twice
         '''
-        CommonTestCases.user_token_assert_equal(
+        CommonTestCases.user_token_assert_in(
             self,
             cancel_event_mutation,
             cancel_event_respone
@@ -89,7 +89,7 @@ class TestEventCheckin(BaseTestCase):
         """
         test that you cannot check-in to a cancelled event
         """
-        CommonTestCases.user_token_assert_equal(
+        CommonTestCases.user_token_assert_in(
             self,
             cancel_event_mutation,
             cancel_event_respone
