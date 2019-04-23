@@ -1,9 +1,11 @@
 import datetime
 import validators
+import re
 
 from api.location.models import CountryType, TimeZoneType
 from graphql import GraphQLError
 from api.office_structure.models import OfficeStructure as OfficeStructureModel
+from api.structure.models import Structure as StructureModel
 
 
 def validate_url(**kwargs):
@@ -42,7 +44,7 @@ def validate_date_time_range(**kwargs):
     elif ('start_date' and 'end_date' in kwargs) and\
             kwargs['end_date'] - kwargs['start_date'] < datetime.timedelta(
                 days=1
-            ):
+    ):
         raise ValueError(
             'endDate should be at least a day after startDate'
         )
@@ -107,3 +109,22 @@ def validate_date_range(**kwargs):
     elif (('end_date' and 'start_date' in kwargs) and
             kwargs['end_date'] < kwargs['start_date']):
         raise ValueError('Earlier date should be lower than later date')
+
+
+def validate_room_labels(**kwargs):
+    """
+    Function to validate the room label string type
+    :params room_labels
+    """
+    room_labels = kwargs.get('room_labels')
+    new_label = re.search("[{}:]", str(room_labels))
+    if new_label:
+        raise AttributeError("Room label is not a valid string type")
+    for i in room_labels:
+        structure = StructureModel.query.filter_by(name=i).first()
+        structure_name = None
+        if structure:
+            structure_name = structure.name
+            break
+        if not structure_name:
+            raise GraphQLError("Structure does not exist")

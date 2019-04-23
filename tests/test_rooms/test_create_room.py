@@ -15,7 +15,9 @@ from fixtures.room.create_room_fixtures import (
     room_duplicate_calender_id_mutation_query,
     room_duplicate_calendar_id_mutation_response,
     room_invalid_location_id_mutation,
-    room_invalid_tag_mutation)
+    room_invalid_tag_mutation,
+    invalid_room_label_query,
+    non_existent_structure_room_label_query)
 from fixtures.token.token_fixture import ADMIN_TOKEN
 
 sys.path.append(os.getcwd())
@@ -53,6 +55,26 @@ class TestCreateRoom(BaseTestCase):
             room_mutation_query_duplicate_name,
             room_mutation_query_duplicate_name_response
         )
+
+    def test_invalid_room_label_format(self):
+        """
+        Test that room label does not accepts list of
+        dictionaries and saves them as strings
+        """
+        CommonTestCases.admin_token_assert_in(
+            self,
+            invalid_room_label_query,
+            "Room label is not a valid string type")
+
+    def test_nonexistent_structure_room_label_query(self):
+        """
+        Test that a room label cannot be created when
+        structure does not exist
+        """
+        CommonTestCases.admin_token_assert_in(
+            self,
+            non_existent_structure_room_label_query,
+            "Structure does not exist")
 
     def test_create_room_with_invalid_location_id(self):
         """
