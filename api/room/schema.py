@@ -125,7 +125,7 @@ class CreateRoom(graphene.Mutation):
             RoomModel.name == kwargs.get('name'),
             RoomModel.state == "active",
             RoomModel.location_id == kwargs.get('location_id')
-            )
+        )
         if result.count():
             ErrorHandler.check_conflict(self, kwargs['name'], 'Room')
         room_tags = []
@@ -240,7 +240,9 @@ class UpdateFirebaseToken(graphene.Mutation):
             raise GraphQLError("Room not found")
         update_entity_fields(room, **kwargs)
         room.save()
-        requests.get(url=Config.MRM_PUSH_URL, params="hello")
+        requests.get(url=Config.MRM_PUSH_URL + "/token",
+                     params={"calendar_id": room.calendar_id,
+                             "firebase_token": room.firebase_token})
         return UpdateFirebaseToken(room=room)
 
 
