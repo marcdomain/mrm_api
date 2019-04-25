@@ -79,6 +79,31 @@ class AssignResource(graphene.Mutation):
         return AssignResource(room_resource=room_resources)
 
 
+class DeleteAssignedResource(graphene.Mutation):
+    """
+        Delete assigned resource in a room
+    """
+    class Arguments:
+        resource_id = graphene.Int(required=True)
+        room_id = graphene.Int(required=True)
+    room_resource = graphene.Field(RoomResource)
+
+    @Auth.user_roles('Admin')
+    def mutate(self, info, resource_id, room_id):
+        query = RoomResource.get_query(info)
+        room_resource = ResourceModel.query.filter_by(
+            id=resource_id).first()
+        assigned_resource = query.filter(
+            RoomResourceModel.room_id == room_id,
+            RoomResourceModel.resource_id == resource_id).first()
+        if not assigned_resource:
+            raise GraphQLError('Resource does not exist in the room')
+        room_resource.quantity = room_resource.quantity + assigned_resource.quantity  # noqa
+        room_resource.save()
+        assigned_resource.delete()
+        return DeleteAssignedResource(room_resource=assigned_resource)
+
+
 class PaginatedResource(Paginate):
     """
         Returns paginated room resources
@@ -121,9 +146,9 @@ class CreateResource(graphene.Mutation):
         resource = ResourceModel(**kwargs)
         payload = {
             'model': ResourceModel, 'field': 'name', 'value':  kwargs['name']
-            }
+        }
         with SaveContextManager(
-          resource, 'Resource', payload
+            resource, 'Resource', payload
         ):
             return CreateResource(resource=resource)
 
@@ -237,7 +262,7 @@ class Mutation(graphene.ObjectType):
             \n- name: The name field of the resource[required]\
             \n- room_id: The unique identifier of the room where the resource \
             is created[required]\n- quantity: The number of resources[required]"
-                )
+    )
     update_room_resource = UpdateRoomResource.Field(
         description="Updates the room resources fields below\
             \n- name: The name field of the resource\
@@ -253,4 +278,9 @@ class Mutation(graphene.ObjectType):
             \n- roomId: Unique key identifier of a room[required]\
             \n- resourceId: Unique key identifier of a resource[required]\
             \n- quantity: The number of resources to be assigned to a room`"
+    )
+    delete_assigned_resource = DeleteAssignedResource.Field(
+        description="Deletes an assigned resource in a room \
+            \n- room_id: The room id of the room with the resource\
+            \n- resource_id: The resource id"
     )
