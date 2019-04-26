@@ -164,16 +164,24 @@ class DeleteResource(graphene.Mutation):
 
     @Auth.user_roles('Admin')
     def mutate(self, info, resource_id, **kwargs):
-        query_room_resource = Resource.get_query(info)
-        active_resources = query_room_resource.filter(
+        query_resources = Resource.get_query(info)
+        active_resources = query_resources.filter(
             ResourceModel.state == "active")
-        exact_room_resource = active_resources.filter(
+        exact_resource = active_resources.filter(
             ResourceModel.id == resource_id).first()
-        if not exact_room_resource:
+        if not exact_resource:
             raise GraphQLError("Resource not found")
-        update_entity_fields(exact_room_resource, state="archived", **kwargs)
-        exact_room_resource.save()
-        return DeleteResource(resource=exact_room_resource)
+        update_entity_fields(exact_resource, state="archived", **kwargs)
+        query_room_resource = RoomResource.get_query(info)
+        room_resources = query_room_resource.filter(
+            RoomResourceModel.resource_id == resource_id).all()
+        for room_resource in room_resources:
+            exact_resource.quantity = (
+                exact_resource.quantity + room_resource.quantity
+                )
+            room_resource.delete()
+        exact_resource.save()
+        return DeleteResource(resource=exact_resource)
 
 
 class Query(graphene.ObjectType):
