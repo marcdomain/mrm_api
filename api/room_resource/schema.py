@@ -121,9 +121,9 @@ class CreateResource(graphene.Mutation):
         resource = ResourceModel(**kwargs)
         payload = {
             'model': ResourceModel, 'field': 'name', 'value':  kwargs['name']
-            }
+        }
         with SaveContextManager(
-          resource, 'Resource', payload
+            resource, 'Resource', payload
         ):
             return CreateResource(resource=resource)
 
@@ -142,11 +142,17 @@ class UpdateRoomResource(graphene.Mutation):
     def mutate(self, info, resource_id, **kwargs):
         validate_empty_fields(**kwargs)
         query = Resource.get_query(info)
+        quantity = kwargs.get('quantity')
         active_resources = query.filter(ResourceModel.state == "active")
         exact_resource = active_resources.filter(
             ResourceModel.id == resource_id).first()
         if not exact_resource:
             raise GraphQLError("Resource not found")
+        if quantity:
+            if quantity < 0:
+                raise GraphQLError(
+                    'Quantity cannot be less than zero'
+                )
         update_entity_fields(exact_resource, **kwargs)
         exact_resource.save()
         return UpdateRoomResource(resource=exact_resource)
@@ -237,7 +243,7 @@ class Mutation(graphene.ObjectType):
             \n- name: The name field of the resource[required]\
             \n- room_id: The unique identifier of the room where the resource \
             is created[required]\n- quantity: The number of resources[required]"
-                )
+    )
     update_room_resource = UpdateRoomResource.Field(
         description="Updates the room resources fields below\
             \n- name: The name field of the resource\

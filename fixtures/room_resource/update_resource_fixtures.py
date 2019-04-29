@@ -75,3 +75,33 @@ expected_response_empty_field = {
     }
 
 }
+
+update_room_resource_negative_integer = '''
+            mutation{
+            updateRoomResource(resourceId:1,quantity:-2){
+                resource{
+                name
+                }
+            }
+            }
+            '''
+
+expected_update_room_resource_negative_integer = {
+    "errors": [
+        {
+            "message": "Quantity cannot be less than zero",
+            "locations": [
+                {
+                    "line": 3,
+                    "column": 13
+                }
+            ],
+            "path": [
+                "updateRoomResource"
+            ]
+        }
+    ],
+    "data": {
+        "updateRoomResource": null
+    }
+}
